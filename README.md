@@ -1,45 +1,34 @@
 # ImageResizer
 
-A PHP class that enables you to resize and scale images.
+A PHP class that enables you to resize images.
 
 ## Installation
 
 Add in your composer.json the following code:
 
-          "require-dev": {
-              "guillaumetissier/ImageResizer": $VERSION
-          }
+        composer require guillaumetissier/image-resizer
 
 ## Usage
 
 ### Examples 
 
-In order to resize proportionally (50%) a gif image $source and save the result into $destination  
+In order to resize proportionally (50%) a gif image $source and save the result into $target  
 
-        use ImageResizer\GifImageResizer as Resizer;
+        use Guillaumetissier\ImageResizer\Constants\Options;
+        use Guillaumetissier\ImageResizer\Constants\ResizeType;
+        use Guillaumetissier\ImageResizer\Constants\Transformations;
+        use Guillaumetissier\ImageResizer\ImageResizer as Resizer;
 
-        $resizeType = Resizer::PROPORTIONAL;
-        $dimensions = [Resizer::RATIO => 50 ]; // 50 %
-        $options    = [Resizer::INTERLACE => true ];
-        $resizer    = new Resizer($resizeType, $dimensions, $options);
-        $resizer->resize($source, $destination);
+        $resizer = Resizer::getInstance()
+            ->setResizeType(ResizeType::PROPORTIONAL)
+            ->setTransformation(Transformations::SET_RATIO, 0.5) // 50%
+            ->setOption(Options::INTERLACE, true);
+        $resizer->resize($source, target);
         
-In order to resize a jpeg image $source with a fixed width and save the result into $destination  
+In order to resize a jpeg image $source with a fixed width of 100px and save the result into $target  
 
-        use ImageResizer\JpegImageResizer as Resizer;
-
-        $resizeType = Resizer::FIXED_WIDTH;
-        $dimensions = [Resizer::WIDTH => 100 ]; // 100 px
-        $options    = [Resizer::INTERLACE => true, Resizer::QUALITY => 75];
-        $resizer = new Resizer($resizeType, $dimensions, $options);
-        $resizer->resize($source, $destination);
-        
-In order to resize a png image $source with fixed dimensions and save the result into $destination  
-
-        use ImageResizer\PngImageResizer as Resizer;
-
-        $resizeType = Resizer::FIXED;
-        $dimensions = [Resizer::WIDTH => 100, Resizer::HEIGHT => 150]; // 100 px x 150px
-        $options    = [Resizer::INTERLACE => true, Resizer::QUALITY => 80];
-        $resizer = new Resizer($resizeType, $dimensions, $options);
-        $resizer->resize($source, $destination);
+        $resizer = Resizer::getInstance()
+            ->setResizeType(ResizeType::FIXED_WIDTH)
+            ->setTransformation(Transformations::SET_WIDTH, 100) // 100px
+            ->setOptions([Options::INTERLACE->value => true, Options::QUALITY->value => 75]);
+        $resizer->resize($source, target);

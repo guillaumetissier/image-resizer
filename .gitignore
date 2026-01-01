@@ -28,5 +28,23 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 
-composer.lock
+# dependencies
 /vendor/
+/composer.lock
+
+# local config
+.env
+.env.local
+.env.*.local
+
+# Cache and logs
+/cache/
+/logs/
+*.log
+
+# PHPUnit
+/.phpunit.result.cache
+/phpunit.xml
+
+# cs fixer
+/.php-cs-fixer.cache
