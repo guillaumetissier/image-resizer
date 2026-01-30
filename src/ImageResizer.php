@@ -11,6 +11,8 @@ use Guillaumetissier\ImageResizer\DimensionCalculator\DimensionCalculatorFactory
 use Guillaumetissier\ImageResizer\DimensionCalculator\DimensionCalculatorFactoryInterface;
 use Guillaumetissier\ImageResizer\DimensionReader\DimensionsReader;
 use Guillaumetissier\ImageResizer\DimensionReader\DimensionsReaderInterface;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactory;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactoryInterface;
@@ -75,8 +77,8 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidDimensionException If value is invalid for dimension transformations
-     * @throws InvalidRatioException     If value is invalid for ratio transformations
+     * @throws InvalidTypeException  If value has wrong type
+     * @throws InvalidRangeException If value is out of range
      */
     public function setTransformations(array $transformations): self
     {
@@ -96,8 +98,8 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidDimensionException If value is invalid for a dimension transformation
-     * @throws InvalidRatioException     If value is invalid for the ratio transformation
+     * @throws InvalidTypeException  If value has wrong type
+     * @throws InvalidRangeException If value is out of range
      */
     public function setTransformation(Transformations $transformation, mixed $value): self
     {
@@ -123,7 +125,7 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws \InvalidArgumentException If option values are invalid
+     * @throws \InvalidArgumentException|InvalidTypeException If option values are invalid
      */
     public function setOptions(array $options): self
     {
@@ -164,7 +166,8 @@ final class ImageResizer
      * @param string      $source Path to the source image
      * @param string|null $target Path to the target image (auto-generated if null)
      *
-     * @throws FileNotFoundException If source file doesn't exist
+     * @throws InvalidTypeException
+     * @throws InvalidPathException If source file doesn't exist
      */
     public function resize(string $source, ?string $target = null): void
     {

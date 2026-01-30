@@ -10,11 +10,11 @@ enum ExceptionCodes: int
     case CANNOT_READ_IMAGE_SIZE = 1;
     case CANNOT_SAVE_IMAGE = 2;
     case INVALID_FORMAT = 4;
-    case INVALID_PATH = 5;
-    case INVALID_QUALITY = 6;
-    case INVALID_RANGE = 7;
-    case INVALID_TARGET_EXTENSION = 8;
-    case INVALID_TYPE = 9;
-    case MISSING_KEY = 10;
-    case UNSUPPORTED_IMAGE_TYPE = 11;
+    case INVALID_IMAGE_TYPE = 5;
+    case INVALID_PATH = 6;
+    case INVALID_QUALITY = 7;
+    case INVALID_RANGE = 8;
+    case INVALID_TARGET_EXTENSION = 9;
+    case INVALID_TYPE = 10;
+    case MISSING_KEY = 11;
 }

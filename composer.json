@@ -5,7 +5,6 @@
   "homepage": "https://github.com/guillaumetissier/image-resizer",
   "keywords": ["jpeg", "gif", "png", "resize"],
   "license": "MIT",
-  "version": "1.1.0",
   "authors": [{
     "name": "Guillaume Tissier",
     "email": "guillaume.tissier@yahoo.com"
