@@ -77,7 +77,7 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidTypeException If value has wrong type
+     * @throws InvalidTypeException  If value has wrong type
      * @throws InvalidRangeException If value is out of range
      */
     public function setTransformations(array $transformations): self
@@ -98,7 +98,7 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidTypeException If value has wrong type
+     * @throws InvalidTypeException  If value has wrong type
      * @throws InvalidRangeException If value is out of range
      */
     public function setTransformation(Transformations $transformation, mixed $value): self

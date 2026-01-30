@@ -2,7 +2,7 @@
 
 namespace Guillaumetissier\ImageResizer\Validators;
 
-use Guillaumetissier\ImageResizer\Constants\SupportedExtension;
+use Guillaumetissier\ImageResizer\Constants\ImageType;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\PathUtilities\Path;
@@ -35,8 +35,8 @@ final class SourceFileValidator implements ValidatorInterface
             throw InvalidPathException::notReadable($value);
         }
 
-        if (!in_array($value->extension(), SupportedExtension::all(), true)) {
-            throw InvalidPathException::invalidFormat($value, SupportedExtension::all());
+        if (!in_array($value->extension(), ImageType::allExtensions(), true)) {
+            throw InvalidPathException::invalidFormat($value, ImageType::allExtensions());
         }
     }
 }

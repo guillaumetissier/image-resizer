@@ -10,7 +10,7 @@ final class InvalidImageTypeException extends \Exception
 {
     public static function invalidImageType(string $imageType, array $expected): self
     {
-        return new self("Unsupported type '$imageType'. One of the following types expected: " . implode(', ', $expected));
+        return new self("Unsupported type '$imageType'. One of the following types expected: ".implode(', ', $expected));
     }
 
     private function __construct(string $message)
