@@ -9,12 +9,12 @@ enum ExceptionCodes: int
     case CANNOT_CREATE_IMAGE = 0;
     case CANNOT_READ_IMAGE_SIZE = 1;
     case CANNOT_SAVE_IMAGE = 2;
-    case DIR_NOT_FOUND = 3;
-    case DIR_NOT_WRITABLE = 4;
-    case FILE_NOT_FOUND = 5;
-    case FILE_NOT_WRITABLE = 6;
-    case INVALID_TARGET_EXTENSION = 7;
-    case MISSING_TRANSFORMATION_KEY = 8;
-    case UNSUPPORTED_IMAGE_TYPE = 9;
-    case WRONG_VALUE_TYPE = 10;
+    case INVALID_FORMAT = 4;
+    case INVALID_PATH = 5;
+    case INVALID_QUALITY = 6;
+    case INVALID_RANGE = 7;
+    case INVALID_TARGET_EXTENSION = 8;
+    case INVALID_TYPE = 9;
+    case MISSING_KEY = 10;
+    case UNSUPPORTED_IMAGE_TYPE = 11;
 }

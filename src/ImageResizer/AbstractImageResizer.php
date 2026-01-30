@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Guillaumetissier\ImageResizer\ImageResizer;
 
 use Guillaumetissier\ImageResizer\Constants\Options;
-use Guillaumetissier\ImageResizer\Exceptions\FileNotWritableException;
-use Guillaumetissier\ImageResizer\Exceptions\InvalidExtensionException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\PathUtilities\Path;
 
@@ -30,7 +29,7 @@ abstract class AbstractImageResizer implements ImageResizerInterface
     public function resize(Path $source, Path $target, ImageDimensions $newDimensions): void
     {
         try {
-            $this->checkTarget($target, $this->extractExtension($source));
+            $this->validateTarget($target, $this->extractExtension($source));
             $this->setSource((string) $source);
             $this->scaleImage($newDimensions);
             $this->interlaceImage();
@@ -40,14 +39,14 @@ abstract class AbstractImageResizer implements ImageResizerInterface
         }
     }
 
-    private function checkTarget(Path $target, string $expectedExt): void
+    private function validateTarget(Path $target, string $expectedExt): void
     {
         if ($target->isFile() && !$target->permissions()->isWritable()) {
-            throw new FileNotWritableException($target);
+            throw InvalidPathException::notWritable($target);
         }
 
         if ($expectedExt !== $this->extractExtension($target)) {
-            throw new InvalidExtensionException($target, $expectedExt);
+            throw InvalidPathException::invalidFormat($target, $expectedExt);
         }
     }
 
@@ -83,6 +82,9 @@ abstract class AbstractImageResizer implements ImageResizerInterface
         }
     }
 
+    /**
+     * @template
+     */
     protected function getOption(Options $optionKey, mixed $default): mixed
     {
         return $this->options[$optionKey->value] ?? $default;

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\DimensionCalculator;
 
+use Guillaumetissier\ImageResizer\Constants\EnumKeyedArray;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
-use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\MissingKeyException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 
 final class FixedDimensionsCalculator implements DimensionCalculatorInterface
@@ -21,29 +22,22 @@ final class FixedDimensionsCalculator implements DimensionCalculatorInterface
      *   setHeight: int
      * } $transformations
      *
-     * @throws MissingTransformationException
-     * @throws WrongValueTypeException
+     * @throws MissingKeyException
+     * @throws InvalidTypeException
      */
     public function __construct(array $transformations)
     {
-        if (!isset($transformations[Transformations::SET_HEIGHT->value])) {
-            throw new MissingTransformationException(Transformations::SET_HEIGHT);
-        }
+        $array = new EnumKeyedArray($transformations);
 
-        if (!isset($transformations[Transformations::SET_WIDTH->value])) {
-            throw new MissingTransformationException(Transformations::SET_WIDTH);
-        }
+        $this->height = $array
+            ->validateKeyExistence(Transformations::SET_HEIGHT)
+            ->validateValueType(Transformations::SET_HEIGHT, 'int')
+            ->value(Transformations::SET_HEIGHT);
 
-        if (!is_int($transformations[Transformations::SET_HEIGHT->value])) {
-            throw new WrongValueTypeException(Transformations::SET_HEIGHT->value, 'integer');
-        }
-
-        if (!is_int($transformations[Transformations::SET_WIDTH->value])) {
-            throw new WrongValueTypeException(Transformations::SET_WIDTH->value, 'integer');
-        }
-
-        $this->height = $transformations[Transformations::SET_HEIGHT->value];
-        $this->width = $transformations[Transformations::SET_WIDTH->value];
+        $this->width = $array
+            ->validateKeyExistence(Transformations::SET_WIDTH)
+            ->validateValueType(Transformations::SET_WIDTH, 'int')
+            ->value(Transformations::SET_WIDTH);
     }
 
     public function calculateDimensions(ImageDimensions $originalDimensions): ImageDimensions

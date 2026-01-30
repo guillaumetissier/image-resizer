@@ -11,33 +11,30 @@ use Guillaumetissier\ImageResizer\DimensionCalculator\DimensionCalculatorFactory
 use Guillaumetissier\ImageResizer\DimensionCalculator\DimensionCalculatorFactoryInterface;
 use Guillaumetissier\ImageResizer\DimensionReader\DimensionsReader;
 use Guillaumetissier\ImageResizer\DimensionReader\DimensionsReaderInterface;
-use Guillaumetissier\ImageResizer\Exceptions\DirNotFoundException;
-use Guillaumetissier\ImageResizer\Exceptions\DirNotWritableException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactory;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactoryInterface;
+use Guillaumetissier\ImageResizer\Validators\DimensionValidator;
+use Guillaumetissier\ImageResizer\Validators\QualityValidator;
+use Guillaumetissier\ImageResizer\Validators\RatioValidator;
+use Guillaumetissier\ImageResizer\Validators\SourceFileValidator;
 use Guillaumetissier\PathUtilities\Path;
 
 final class ImageResizer
 {
-    private static ?ImageResizer $instance = null;
-
     private ResizeType $type = ResizeType::PROPORTIONAL;
 
     protected array $transformations = [];
 
     protected array $options = [];
 
-    public static function getInstance(): self
+    public static function create(): self
     {
-        if (null === self::$instance) {
-            self::$instance = new self(
-                new DimensionsReader(),
-                new DimensionCalculatorFactory(),
-                new ImageResizerFactory()
-            );
-        }
-
-        return self::$instance;
+        return new self(
+            new DimensionsReader(),
+            new DimensionCalculatorFactory(),
+            new ImageResizerFactory()
+        );
     }
 
     public function __construct(
@@ -47,7 +44,12 @@ final class ImageResizer
     ) {
     }
 
-    public function setType(ResizeType $type): self
+    /**
+     * Set the resize type (proportional, fixed width, fixed height, exact).
+     *
+     * @return self For method chaining
+     */
+    public function setResizeType(ResizeType $type): self
     {
         $this->type = $type;
 
@@ -55,54 +57,125 @@ final class ImageResizer
     }
 
     /**
+     * Alias for setResizeType() for backward compatibility.
+     */
+    public function setType(ResizeType $type): self
+    {
+        return $this->setResizeType($type);
+    }
+
+    /**
+     * Set multiple transformations at once.
+     *
      * @param array{
      *     setHeight?: int,
      *     setWidth?: int,
      *     setRatio?: int|float
      * } $transformations
+     *
+     * @return self For method chaining
+     *
+     * @throws InvalidDimensionException If value is invalid for dimension transformations
+     * @throws InvalidRatioException     If value is invalid for ratio transformations
      */
     public function setTransformations(array $transformations): self
     {
-        $this->transformations = $transformations;
+        foreach ($transformations as $key => $value) {
+            $transformation = Transformations::from($key);
+            $this->setTransformation($transformation, $value);
+        }
 
         return $this;
     }
 
+    /**
+     * Set a single transformation.
+     *
+     * @param Transformations $transformation The transformation type
+     * @param mixed           $value          The transformation value (dimension in pixels or ratio)
+     *
+     * @return self For method chaining
+     *
+     * @throws InvalidDimensionException If value is invalid for a dimension transformation
+     * @throws InvalidRatioException     If value is invalid for the ratio transformation
+     */
     public function setTransformation(Transformations $transformation, mixed $value): self
     {
+        match ($transformation) {
+            Transformations::SET_WIDTH,
+            Transformations::SET_HEIGHT => DimensionValidator::validate($value),
+            Transformations::SET_RATIO => RatioValidator::validate($value),
+        };
+
         $this->transformations[$transformation->value] = $value;
 
         return $this;
     }
 
     /**
+     * Set multiple options at once.
+     *
      * @param array{
      *     mode?: string,
      *     quality?: int,
      *     interlace?: bool
      * } $options
+     *
+     * @return self For method chaining
+     *
+     * @throws \InvalidArgumentException If option values are invalid
      */
     public function setOptions(array $options): self
     {
-        $this->options = $options;
+        foreach ($options as $key => $value) {
+            $option = Options::from($key);
+            $this->setOption($option, $value);
+        }
 
         return $this;
     }
 
-    public function setOption(Options $option, mixed $value): self
+    /**
+     * Set a single option.
+     *
+     * @param Options         $option The option type
+     * @param int|bool|string $value  The option value
+     *
+     * @return self For method chaining
+     *
+     * @throws InvalidTypeException If value is invalid for a quality option
+     */
+    public function setOption(Options $option, int|bool|string $value): self
     {
+        match ($option) {
+            Options::QUALITY => QualityValidator::validate($value),
+            Options::INTERLACE => $this->validateBoolean($value),
+            default => null, // No validation for other options
+        };
+
         $this->options[$option->value] = $value;
 
         return $this;
     }
 
+    /**
+     * Resize an image from source to target.
+     *
+     * @param string      $source Path to the source image
+     * @param string|null $target Path to the target image (auto-generated if null)
+     *
+     * @throws FileNotFoundException If source file doesn't exist
+     */
     public function resize(string $source, ?string $target = null): void
     {
         $sourcePath = new Path($source);
+
+        SourceFileValidator::validate($sourcePath);
+
         if (null !== $target) {
             $targetPath = new Path($target);
             if (!$targetPath->exists()) {
-                $this->checkDirectory($targetPath->parent());
+                $this->validateDirectory($targetPath->parent());
             }
         } else {
             $targetPath = $this->addResizedPrefix($sourcePath);
@@ -120,14 +193,15 @@ final class ImageResizer
             ->resize($sourcePath, $targetPath, $newDimensions);
     }
 
-    private function checkDirectory(Path $target): void
+    private function validateBoolean(mixed $value): void
     {
-        if (!$target->isDir()) {
-            throw new DirNotFoundException($target);
+        if (!is_bool($value)) {
+            throw new \InvalidArgumentException('Option value must be a boolean, got: '.gettype($value));
         }
-        if (!$target->permissions()->isWritable()) {
-            throw new DirNotWritableException($target);
-        }
+    }
+
+    private function validateDirectory(Path $target): void
+    {
     }
 
     private function addResizedPrefix(Path $file): Path

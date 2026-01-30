@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\DimensionCalculator;
 
+use Guillaumetissier\ImageResizer\Constants\EnumKeyedArray;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
-use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\MissingKeyException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 
 final class FixedWidthCalculator implements DimensionCalculatorInterface
@@ -18,20 +19,17 @@ final class FixedWidthCalculator implements DimensionCalculatorInterface
      *     setWidth: int
      * } $transformations
      *
-     * @throws MissingTransformationException
-     * @throws WrongValueTypeException
+     * @throws MissingKeyException
+     * @throws InvalidTypeException
      */
     public function __construct(array $transformations)
     {
-        if (!isset($transformations[Transformations::SET_WIDTH->value])) {
-            throw new MissingTransformationException(Transformations::SET_WIDTH);
-        }
+        $array = new EnumKeyedArray($transformations);
 
-        if (!is_int($transformations[Transformations::SET_WIDTH->value])) {
-            throw new WrongValueTypeException(Transformations::SET_WIDTH->value, 'integer');
-        }
-
-        $this->width = $transformations[Transformations::SET_WIDTH->value];
+        $this->width = $array
+            ->validateKeyExistence(Transformations::SET_WIDTH)
+            ->validateValueType(Transformations::SET_WIDTH, 'int')
+            ->value(Transformations::SET_WIDTH);
     }
 
     public function calculateDimensions(ImageDimensions $originalDimensions): ImageDimensions

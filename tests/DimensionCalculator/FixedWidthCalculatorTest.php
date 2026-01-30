@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace DimensionCalculator;
 
-use Guillaumetissier\ImageResizer\Constants\Transformations;
 use Guillaumetissier\ImageResizer\DimensionCalculator\FixedWidthCalculator;
-use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\MissingKeyException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +14,7 @@ final class FixedWidthCalculatorTest extends TestCase
 {
     public function testCalculateDimensionsKeepsAspectRatio(): void
     {
-        $calculator = new FixedWidthCalculator([Transformations::SET_WIDTH->value => 200]);
+        $calculator = new FixedWidthCalculator(['setWidth' => 200]);
         $original = new ImageDimensions(400, 800);
         $result = $calculator->calculateDimensions($original);
 
@@ -26,15 +25,15 @@ final class FixedWidthCalculatorTest extends TestCase
 
     public function testMissingHeightThrowsException(): void
     {
-        $this->expectException(MissingTransformationException::class);
+        $this->expectException(MissingKeyException::class);
 
         new FixedWidthCalculator([]);
     }
 
     public function testNonIntegerHeightThrowsException(): void
     {
-        $this->expectException(WrongValueTypeException::class);
+        $this->expectException(InvalidTypeException::class);
 
-        new FixedWidthCalculator([Transformations::SET_WIDTH->value => '200']);
+        new FixedWidthCalculator(['setWidth' => '200']);
     }
 }

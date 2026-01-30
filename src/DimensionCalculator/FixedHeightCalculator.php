@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\DimensionCalculator;
 
+use Guillaumetissier\ImageResizer\Constants\EnumKeyedArray;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
-use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\MissingKeyException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 
 final class FixedHeightCalculator implements DimensionCalculatorInterface
@@ -14,24 +15,19 @@ final class FixedHeightCalculator implements DimensionCalculatorInterface
     private int $height;
 
     /**
-     * @param array{
-     *     setHeight: int
-     * } $transformations
+     * @param array<Transformations, int|float> $transformations Transformations indexed by enum
      *
-     * @throws MissingTransformationException
-     * @throws WrongValueTypeException
+     * @throws MissingKeyException
+     * @throws InvalidTypeException
      */
     public function __construct(array $transformations)
     {
-        if (!isset($transformations[Transformations::SET_HEIGHT->value])) {
-            throw new MissingTransformationException(Transformations::SET_HEIGHT);
-        }
+        $array = new EnumKeyedArray($transformations);
 
-        if (!is_int($transformations[Transformations::SET_HEIGHT->value])) {
-            throw new WrongValueTypeException(Transformations::SET_HEIGHT->value, 'integer');
-        }
-
-        $this->height = $transformations[Transformations::SET_HEIGHT->value];
+        $this->height = $array
+            ->validateKeyExistence(Transformations::SET_HEIGHT)
+            ->validateValueType(Transformations::SET_HEIGHT, 'int')
+            ->value(Transformations::SET_HEIGHT);
     }
 
     public function calculateDimensions(ImageDimensions $originalDimensions): ImageDimensions

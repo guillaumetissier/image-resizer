@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Guillaumetissier\ImageResizer\DimensionReader;
 
 use Guillaumetissier\ImageResizer\Exceptions\CannotReadImageSizeException;
-use Guillaumetissier\ImageResizer\Exceptions\FileNotFoundException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\PathUtilities\Path;
 
 final class DimensionsReader implements DimensionsReaderInterface
 {
     /**
-     * @throws FileNotFoundException|CannotReadImageSizeException
+     * @throws InvalidPathException|CannotReadImageSizeException
      */
     public function readDimensions(Path $file): ImageDimensions
     {
         if (!$file->isFile()) {
-            throw new FileNotFoundException($file);
+            throw InvalidPathException::notFile($file);
         }
 
         if (false === ($infos = @getimagesize((string) $file))) {

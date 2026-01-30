@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Guillaumetissier\ImageResizer\DimensionCalculator;
 
 use Guillaumetissier\ImageResizer\Constants\ResizeType;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
 
 final class DimensionCalculatorFactory implements DimensionCalculatorFactoryInterface
 {
@@ -18,7 +18,7 @@ final class DimensionCalculatorFactory implements DimensionCalculatorFactoryInte
      *  } $transformations
      *
      * @throws MissingTransformationException
-     * @throws WrongValueTypeException
+     * @throws InvalidTypeException
      */
     public function create(ResizeType $resizeType, array $transformations): DimensionCalculatorInterface
     {

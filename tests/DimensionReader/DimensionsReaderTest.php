@@ -6,7 +6,7 @@ namespace Guillaumetissier\ImageResizer\Tests\DimensionReader;
 
 use Guillaumetissier\ImageResizer\DimensionReader\DimensionsReader;
 use Guillaumetissier\ImageResizer\Exceptions\CannotReadImageSizeException;
-use Guillaumetissier\ImageResizer\Exceptions\FileNotFoundException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\PathUtilities\Path;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +42,7 @@ final class DimensionsReaderTest extends TestCase
 
     public function testFileNotFoundThrowsException(): void
     {
-        $this->expectException(FileNotFoundException::class);
+        $this->expectException(InvalidPathException::class);
 
         $reader = new DimensionsReader();
         $reader->readDimensions(new Path('/path/to/nonexistent/file.png'));

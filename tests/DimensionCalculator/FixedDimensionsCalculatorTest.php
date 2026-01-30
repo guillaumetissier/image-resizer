@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\Tests\DimensionCalculator;
 
-use Guillaumetissier\ImageResizer\Constants\Transformations;
 use Guillaumetissier\ImageResizer\DimensionCalculator\FixedDimensionsCalculator;
-use Guillaumetissier\ImageResizer\Exceptions\MissingTransformationException;
-use Guillaumetissier\ImageResizer\Exceptions\WrongValueTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\MissingKeyException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use PHPUnit\Framework\TestCase;
 
@@ -15,10 +14,7 @@ final class FixedDimensionsCalculatorTest extends TestCase
 {
     public function testCalculateDimensionsReturnsFixedDimensions(): void
     {
-        $calculator = new FixedDimensionsCalculator([
-            Transformations::SET_HEIGHT->value => 200,
-            Transformations::SET_WIDTH->value => 300,
-        ]);
+        $calculator = new FixedDimensionsCalculator(['setHeight' => 200, 'setWidth' => 300]);
         $original = new ImageDimensions(800, 600);
         $result = $calculator->calculateDimensions($original);
 
@@ -29,39 +25,29 @@ final class FixedDimensionsCalculatorTest extends TestCase
 
     public function testMissingHeightThrowsException(): void
     {
-        $this->expectException(MissingTransformationException::class);
+        $this->expectException(MissingKeyException::class);
 
-        new FixedDimensionsCalculator([
-            Transformations::SET_WIDTH->value => 300,
-        ]);
+        new FixedDimensionsCalculator(['setWidth' => 300]);
     }
 
     public function testMissingWidthThrowsException(): void
     {
-        $this->expectException(MissingTransformationException::class);
+        $this->expectException(MissingKeyException::class);
 
-        new FixedDimensionsCalculator([
-            Transformations::SET_HEIGHT->value => 200,
-        ]);
+        new FixedDimensionsCalculator(['setHeight' => 200]);
     }
 
     public function testNonIntegerHeightThrowsException(): void
     {
-        $this->expectException(WrongValueTypeException::class);
+        $this->expectException(InvalidTypeException::class);
 
-        new FixedDimensionsCalculator([
-            Transformations::SET_HEIGHT->value => '200',
-            Transformations::SET_WIDTH->value => 300,
-        ]);
+        new FixedDimensionsCalculator(['setHeight' => '200', 'setWidth' => 300]);
     }
 
     public function testNonIntegerWidthThrowsException(): void
     {
-        $this->expectException(WrongValueTypeException::class);
+        $this->expectException(InvalidTypeException::class);
 
-        new FixedDimensionsCalculator([
-            Transformations::SET_HEIGHT->value => 200,
-            Transformations::SET_WIDTH->value => '300',
-        ]);
+        new FixedDimensionsCalculator(['setHeight' => 200, 'setWidth' => '300']);
     }
 }
