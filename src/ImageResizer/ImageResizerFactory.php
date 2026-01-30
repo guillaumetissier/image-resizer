@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\ImageResizer;
 
-use Guillaumetissier\ImageResizer\Exceptions\UnsupportedImageTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidImageTypeException;
 use Guillaumetissier\PathUtilities\Path;
 
 final class ImageResizerFactory implements ImageResizerFactoryInterface
@@ -16,7 +16,7 @@ final class ImageResizerFactory implements ImageResizerFactoryInterface
      *     quality?: int,
      * } $options
      *
-     * @throws UnsupportedImageTypeException
+     * @throws InvalidImageTypeException
      */
     public function create(Path $path, array $options): ImageResizerInterface
     {
@@ -24,8 +24,7 @@ final class ImageResizerFactory implements ImageResizerFactoryInterface
             'gif' => new GifImageResizer($options),
             'jpeg', 'jpg' => new JpegImageResizer($options),
             'png' => new PngImageResizer($options),
-            '' => throw new UnsupportedImageTypeException('unknown'),
-            default => throw new UnsupportedImageTypeException($ext),
+            default => throw InvalidImageTypeException::invalidImageType($ext, ['gif', 'jpg', 'png']),
         };
     }
 }

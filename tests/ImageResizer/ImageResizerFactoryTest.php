@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guillaumetissier\ImageResizer\Tests\ImageResizer;
 
-use Guillaumetissier\ImageResizer\Exceptions\UnsupportedImageTypeException;
+use Guillaumetissier\ImageResizer\Exceptions\InvalidImageTypeException;
 use Guillaumetissier\ImageResizer\ImageResizer\GifImageResizer;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactory;
 use Guillaumetissier\ImageResizer\ImageResizer\JpegImageResizer;
@@ -35,7 +35,7 @@ final class ImageResizerFactoryTest extends TestCase
 
     public function testUnsupportedExtensionThrowsException(): void
     {
-        $this->expectException(UnsupportedImageTypeException::class);
+        $this->expectException(InvalidImageTypeException::class);
 
         $factory = new ImageResizerFactory();
         $factory->create(new Path('image.bmp'), []);
