@@ -6,17 +6,25 @@ namespace Guillaumetissier\ImageResizer\Tests\Validators;
 
 use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\ImageResizer\Validators\RatioValidator;
 use PHPUnit\Framework\TestCase;
 
 final class RatioValidatorTest extends TestCase
 {
+    private RatioValidator $validator;
+
+    protected function setUp(): void
+    {
+        $this->validator = new RatioValidator(new ImageResizerConfig(['minRatio' => 0.01, 'maxRatio' => 2.0]));
+    }
+
     /**
      * @dataProvider validRatioProvider
      */
     public function testValidateAcceptsValidRatios(int|float $ratio): void
     {
-        RatioValidator::validate($ratio);
+        $this->validator->validate($ratio);
 
         $this->assertTrue(true);
     }
@@ -41,7 +49,7 @@ final class RatioValidatorTest extends TestCase
     {
         $this->expectException(InvalidTypeException::class);
 
-        RatioValidator::validate($value);
+        $this->validator->validate($value);
     }
 
     public static function invalidTypeProvider(): array
@@ -68,7 +76,7 @@ final class RatioValidatorTest extends TestCase
         $this->expectExceptionMessage('0.01');
         $this->expectExceptionMessage('2');
 
-        RatioValidator::validate($ratio);
+        $this->validator->validate($ratio);
     }
 
     public static function outOfRangeProvider(): array

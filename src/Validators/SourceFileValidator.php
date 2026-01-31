@@ -17,7 +17,7 @@ final class SourceFileValidator implements ValidatorInterface
      * @throws InvalidTypeException If $value is not a Path
      * @throws InvalidPathException If $value is not a readable file or has unsupported format
      */
-    public static function validate(mixed $value): void
+    public function validate(mixed $value): void
     {
         if (!$value instanceof Path) {
             throw InvalidTypeException::notPath('Source file', $value);

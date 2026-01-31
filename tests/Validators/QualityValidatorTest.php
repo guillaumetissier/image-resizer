@@ -6,17 +6,25 @@ namespace Guillaumetissier\ImageResizer\Tests\Validators;
 
 use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\ImageResizer\Validators\QualityValidator;
 use PHPUnit\Framework\TestCase;
 
 final class QualityValidatorTest extends TestCase
 {
+    private QualityValidator $validator;
+
+    protected function setUp(): void
+    {
+        $this->validator = new QualityValidator(new ImageResizerConfig(['minQuality' => 0, 'maxQuality' => 100]));
+    }
+
     /**
      * @dataProvider validQualityProvider
      */
     public function testValidateAcceptsValidQualities(int $quality): void
     {
-        QualityValidator::validate($quality);
+        $this->validator->validate($quality);
 
         $this->assertTrue(true);
     }
@@ -41,7 +49,7 @@ final class QualityValidatorTest extends TestCase
     {
         $this->expectException(InvalidTypeException::class);
 
-        QualityValidator::validate($value);
+        $this->validator->validate($value);
     }
 
     public static function invalidTypeProvider(): array
@@ -69,7 +77,7 @@ final class QualityValidatorTest extends TestCase
         $this->expectExceptionMessage('0');
         $this->expectExceptionMessage('100');
 
-        QualityValidator::validate($quality);
+        $this->validator->validate($quality);
     }
 
     public static function outOfRangeProvider(): array

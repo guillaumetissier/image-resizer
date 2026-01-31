@@ -9,14 +9,22 @@ use Guillaumetissier\ImageResizer\Exceptions\CannotCreateImageException;
 use Guillaumetissier\ImageResizer\Exceptions\CannotSaveImageException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\ImageResizer\ImageResizer\JpegImageResizer;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\PathUtilities\Path;
 use PHPUnit\Framework\TestCase;
 
 final class JpegImageResizerTest extends TestCase
 {
+    private static ImageResizerConfig $config;
+
     private string $sourceFile;
 
     private string $targetFile;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$config = new ImageResizerConfig();
+    }
 
     protected function setUp(): void
     {
@@ -41,7 +49,7 @@ final class JpegImageResizerTest extends TestCase
 
     public function testResizeJpegImage(): void
     {
-        $resizer = new JpegImageResizer([]);
+        $resizer = new JpegImageResizer(self::$config, []);
         $newDimensions = new ImageDimensions(40, 60); // height, width
         $resizer->resize(new Path($this->sourceFile), new Path($this->targetFile), $newDimensions);
 
@@ -53,7 +61,7 @@ final class JpegImageResizerTest extends TestCase
 
     public function testResizeJpegWithCustomQuality(): void
     {
-        $resizer = new JpegImageResizer([Options::QUALITY->value => 50]);
+        $resizer = new JpegImageResizer(self::$config, [Options::QUALITY->value => 50]);
         $resizer->resize(
             new Path($this->sourceFile),
             new Path($this->targetFile),
@@ -67,7 +75,7 @@ final class JpegImageResizerTest extends TestCase
     {
         $this->expectException(CannotCreateImageException::class);
 
-        $resizer = new JpegImageResizer([]);
+        $resizer = new JpegImageResizer(self::$config, []);
         $resizer->resize(
             new Path('/path/to/nonexistent.jpg'),
             new Path($this->targetFile),
@@ -79,7 +87,7 @@ final class JpegImageResizerTest extends TestCase
     {
         $this->expectException(CannotSaveImageException::class);
 
-        $resizer = new JpegImageResizer([]);
+        $resizer = new JpegImageResizer(self::$config, []);
         $resizer->resize(
             new Path($this->sourceFile),
             new Path('/invalid/path/target.jpg'),

@@ -52,6 +52,17 @@ final class InvalidTypeException extends \Exception
         return new self($variable, 'Path', $value);
     }
 
+    /**
+     * Create exception for a variable whose value is not a ImageDimensions.
+     *
+     * @param string $variable The name of the variable with invalid type
+     * @param mixed  $value    The invalid value
+     */
+    public static function notImageDimensions(string $variable, mixed $value): self
+    {
+        return new self($variable, 'ImageDimensions', $value);
+    }
+
     private function __construct(string $variable, string $expectedType, mixed $value)
     {
         parent::__construct(

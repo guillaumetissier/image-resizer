@@ -28,7 +28,7 @@ final class PngImageResizer extends AbstractImageResizer
     protected function save(string $target): void
     {
         // Compression level: from 0 (no compression) to 9.
-        $quality = $this->getOption(Options::QUALITY, 100);
+        $quality = $this->getOption(Options::QUALITY, $this->config->defaultQuality);
         $quality = (int) round((100 - $quality) / 10);
 
         if (false === @imagepng($this->target, $target, $quality)) {

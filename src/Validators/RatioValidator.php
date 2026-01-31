@@ -6,6 +6,7 @@ namespace Guillaumetissier\ImageResizer\Validators;
 
 use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
 /**
  * Validates image ratio values.
@@ -18,8 +19,15 @@ use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
  */
 final class RatioValidator implements ValidatorInterface
 {
-    private const MIN_RATIO = 0.01;  // 1% minimum (prevent too small images)
-    private const MAX_RATIO = 2.0;  // 200% maximum (prevent memory issues)
+    private readonly float $minRatio;
+
+    private readonly float $maxRatio;
+
+    public function __construct(ImageResizerConfig $config)
+    {
+        $this->minRatio = $config->minRatio;
+        $this->maxRatio = $config->maxRatio;
+    }
 
     /**
      * Validate that ratio is within acceptable range.
@@ -29,14 +37,14 @@ final class RatioValidator implements ValidatorInterface
      * @throws InvalidTypeException  If ratio is not numeric
      * @throws InvalidRangeException If ratio is outside acceptable range
      */
-    public static function validate(mixed $value): void
+    public function validate(mixed $value): void
     {
         if (!is_float($value) && !is_int($value)) {
             throw InvalidTypeException::notFloat('ratio', $value);
         }
 
-        if ($value < self::MIN_RATIO || $value > self::MAX_RATIO) {
-            throw InvalidRangeException::outOfRange('ratio', $value, self::MIN_RATIO, self::MAX_RATIO);
+        if ($value < $this->minRatio || $value > $this->maxRatio) {
+            throw InvalidRangeException::outOfRange('ratio', $value, $this->minRatio, $this->maxRatio);
         }
     }
 }

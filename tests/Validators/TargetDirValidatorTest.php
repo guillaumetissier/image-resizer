@@ -12,10 +12,13 @@ use PHPUnit\Framework\TestCase;
 
 final class TargetDirValidatorTest extends TestCase
 {
+    private TargetDirValidator $validator;
+
     private string $testDir;
 
     protected function setUp(): void
     {
+        $this->validator = new TargetDirValidator();
         $this->testDir = sys_get_temp_dir().'/image-resizer-test-'.uniqid();
         mkdir($this->testDir, 0755, true);
     }
@@ -30,7 +33,7 @@ final class TargetDirValidatorTest extends TestCase
 
     public function testValidateAcceptsValidDirectory(): void
     {
-        TargetDirValidator::validate(new Path($this->testDir));
+        $this->validator->validate(new Path($this->testDir));
 
         $this->assertTrue(true);
     }
@@ -42,7 +45,7 @@ final class TargetDirValidatorTest extends TestCase
     {
         $this->expectException(InvalidTypeException::class);
 
-        TargetDirValidator::validate($value);
+        $this->validator->validate($value);
     }
 
     public static function invalidTypeProvider(): array
@@ -64,7 +67,7 @@ final class TargetDirValidatorTest extends TestCase
         $this->expectExceptionMessage('not found');
 
         $nonExistent = new Path($this->testDir.'/does-not-exist');
-        TargetDirValidator::validate($nonExistent);
+        $this->validator->validate($nonExistent);
     }
 
     public function testValidateThrowsWhenPathIsFile(): void
@@ -75,7 +78,7 @@ final class TargetDirValidatorTest extends TestCase
         $this->expectException(InvalidPathException::class);
         $this->expectExceptionMessage('not a directory');
 
-        TargetDirValidator::validate(new Path($file));
+        $this->validator->validate(new Path($file));
     }
 
     public function testValidateThrowsWhenDirectoryIsNotWritable(): void
@@ -85,7 +88,7 @@ final class TargetDirValidatorTest extends TestCase
         $exceptionThrown = false;
 
         try {
-            TargetDirValidator::validate(new Path($dir));
+            $this->validator->validate(new Path($dir));
         } catch (\Throwable $exception) {
             $exceptionThrown = true;
             $this->assertInstanceOf(InvalidPathException::class, $exception);

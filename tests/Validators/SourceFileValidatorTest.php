@@ -12,10 +12,13 @@ use PHPUnit\Framework\TestCase;
 
 final class SourceFileValidatorTest extends TestCase
 {
+    private SourceFileValidator $validator;
+
     private string $testDir;
 
     protected function setUp(): void
     {
+        $this->validator = new SourceFileValidator();
         $this->testDir = sys_get_temp_dir().'/image-resizer-test-'.uniqid();
         mkdir($this->testDir, 0755, true);
     }
@@ -37,7 +40,7 @@ final class SourceFileValidatorTest extends TestCase
         file_put_contents($file, 'test content');
         chmod($file, 0644);
 
-        SourceFileValidator::validate(new Path($file));
+        $this->validator->validate(new Path($file));
 
         $this->assertTrue(true);
     }
@@ -59,7 +62,7 @@ final class SourceFileValidatorTest extends TestCase
     {
         $this->expectException(InvalidTypeException::class);
 
-        SourceFileValidator::validate($value);
+        $this->validator->validate($value);
     }
 
     public static function invalidTypeProvider(): array
@@ -81,7 +84,7 @@ final class SourceFileValidatorTest extends TestCase
         $this->expectExceptionMessage('not found');
 
         $nonExistent = new Path($this->testDir.'/does-not-exist.jpg');
-        SourceFileValidator::validate($nonExistent);
+        $this->validator->validate($nonExistent);
     }
 
     public function testValidateThrowsWhenPathIsDirectory(): void
@@ -89,7 +92,7 @@ final class SourceFileValidatorTest extends TestCase
         $this->expectException(InvalidPathException::class);
         $this->expectExceptionMessage('not a file');
 
-        SourceFileValidator::validate(new Path($this->testDir));
+        $this->validator->validate(new Path($this->testDir));
     }
 
     public function testValidateThrowsWhenFileIsNotReadable(): void
@@ -102,7 +105,7 @@ final class SourceFileValidatorTest extends TestCase
         $this->expectExceptionMessage('not readable');
 
         try {
-            SourceFileValidator::validate(new Path($file));
+            $this->validator->validate(new Path($file));
         } finally {
             chmod($file, 0644); // Restore permissions for cleanup
         }
@@ -119,7 +122,7 @@ final class SourceFileValidatorTest extends TestCase
         $this->expectException(InvalidPathException::class);
         $this->expectExceptionMessage('invalid format');
 
-        SourceFileValidator::validate(new Path($file));
+        $this->validator->validate(new Path($file));
     }
 
     public static function unsupportedExtensionProvider(): array
