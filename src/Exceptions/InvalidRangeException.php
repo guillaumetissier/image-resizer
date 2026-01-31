@@ -10,6 +10,18 @@ use Guillaumetissier\ImageResizer\Constants\ExceptionCodes;
 final class InvalidRangeException extends \InvalidArgumentException
 {
     /**
+     * Create exception for a value that is not in a set of allowed values.
+     *
+     * @param string    $variable The name of the variable whose value is invalid
+     * @param int|float $value    The invalid value
+     * @param array     $values   The allowed values
+     */
+    public static function outOfSet(string $variable, int|float $value, array $values): self
+    {
+        return new self(sprintf("$variable expected to be in (%s). Got $value.", implode(', ', $values)));
+    }
+
+    /**
      * Create exception for a dimension value that is too small.
      *
      * @param string    $variable The name of the variable whose value is invalid

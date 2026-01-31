@@ -2,390 +2,449 @@
 
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue.svg)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Latest Version](https://img.shields.io/badge/version-1.1.0-orange.svg)](CHANGELOG.md)
 
-A modern, type-safe PHP library for resizing images with comprehensive validation and a fluent interface.
+A powerful and flexible PHP library for resizing images with configurable validation constraints.
 
-## ✨ Features
+## Features
 
-- 🎯 **Multiple resize modes**: Proportional, fixed width, fixed height, exact dimensions
-- 🔒 **Comprehensive validation**: Early parameter validation with clear error messages
-- 🖼️ **Format support**: JPEG, PNG, GIF
-- ⚡ **Quality control**: Adjustable compression quality for lossy formats
-- 🔗 **Fluent interface**: Chainable methods for easy configuration
-- 🛡️ **Type safety**: Full PHP 8.1+ type hints and enum support
-- 📝 **Well tested**: Comprehensive test coverage
+- 🎯 **Simple API** - Intuitive fluent interface for easy image manipulation
+- ⚙️ **Configurable** - Customizable validation constraints for width, height, ratio, and quality
+- 🛡️ **Secure** - Pre-configured profiles for different security requirements
+- 🧪 **Well-tested** - Comprehensive test coverage
+- 🔧 **Extensible** - Clean architecture with dependency injection
+- 📦 **Multiple formats** - Support for JPEG, PNG, and GIF
 
-## 📋 Requirements
+## Requirements
 
 - PHP 8.1 or higher
-- GD extension or Imagick
-- [guillaumetissier/path-utilities](https://github.com/guillaumetissier/path-utilities) ^1.0
+- GD extension or Imagick extension
 
-## 📦 Installation
+## Installation
+
+Install via Composer:
 
 ```bash
 composer require guillaumetissier/image-resizer
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```php
-<?php
-
 use Guillaumetissier\ImageResizer\ImageResizer;
-use Guillaumetissier\ImageResizer\Constants\ResizeType;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
 use Guillaumetissier\ImageResizer\Constants\Options;
 
-// Resize to 50% of original size
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::PROPORTIONAL)
-    ->setTransformation(Transformations::SET_RATIO, 0.5)
-    ->setOption(Options::QUALITY, 85);
+// Create resizer with safe configuration
+$resizer = ImageResizer::create();
 
-$resizer->resize('input.jpg', 'output.jpg');
+// Resize image
+$resizer
+    ->setTransformation(Transformations::SET_WIDTH, 1920)
+    ->setOption(Options::QUALITY, 85)
+    ->resize('source.jpg', 'output.jpg');
 ```
 
-## 📖 Usage
+## Usage
 
-### Resize Modes
-
-#### Proportional Resize (by ratio)
+### Basic Resizing
 
 ```php
 use Guillaumetissier\ImageResizer\ImageResizer;
-use Guillaumetissier\ImageResizer\Constants\ResizeType;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
 
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::PROPORTIONAL)
-    ->setTransformation(Transformations::SET_RATIO, 0.5); // 50% of original
+$resizer = ImageResizer::create();
 
-$resizer->resize('photo.jpg', 'photo-small.jpg');
+// Resize by width (maintains aspect ratio)
+$resizer->setTransformation(Transformations::SET_WIDTH, 800)
+    ->resize('image.jpg', 'resized.jpg');
+
+// Resize by height (maintains aspect ratio)
+$resizer->setTransformation(Transformations::SET_HEIGHT, 600)
+    ->resize('image.jpg', 'resized.jpg');
+
+// Resize by aspect ratio
+$resizer->setTransformation(Transformations::SET_RATIO, 16/9)
+    ->resize('image.jpg', 'resized.jpg');
 ```
 
-#### Fixed Width (maintain aspect ratio)
+### Multiple Transformations
 
 ```php
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::FIXED_WIDTH)
-    ->setTransformation(Transformations::SET_WIDTH, 800);
+$resizer->setTransformations([
+    Transformations::SET_WIDTH->value => 1920,
+    Transformations::SET_HEIGHT->value => 1080,
+]);
 
-$resizer->resize('photo.jpg', 'photo-800w.jpg');
+$resizer->resize('source.jpg', 'output.jpg');
 ```
 
-#### Fixed Height (maintain aspect ratio)
-
-```php
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::FIXED_HEIGHT)
-    ->setTransformation(Transformations::SET_HEIGHT, 600);
-
-$resizer->resize('photo.jpg', 'photo-600h.jpg');
-```
-
-#### Exact Dimensions (may distort)
-
-```php
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::EXACT)
-    ->setTransformation(Transformations::SET_WIDTH, 800)
-    ->setTransformation(Transformations::SET_HEIGHT, 600);
-
-$resizer->resize('photo.jpg', 'photo-800x600.jpg');
-```
-
-### Output Options
-
-#### Quality Control
+### Quality and Options
 
 ```php
 use Guillaumetissier\ImageResizer\Constants\Options;
 
-// High quality (larger file)
-$resizer->setOption(Options::QUALITY, 95);
+$resizer = ImageResizer::create()
+    ->setOption(Options::QUALITY, 85)           // JPEG quality (0-100)
+    ->setOption(Options::INTERLACE, true);      // Progressive JPEG
 
-// Medium quality (balanced)
-$resizer->setOption(Options::QUALITY, 80);
-
-// Low quality (smaller file)
-$resizer->setOption(Options::QUALITY, 60);
-```
-
-#### Progressive JPEG
-
-```php
-$resizer->setOption(Options::INTERLACE, true);
-```
-
-#### Multiple Options
-
-```php
+// Or set multiple options at once
 $resizer->setOptions([
-    Options::QUALITY->value => 85,
+    Options::QUALITY->value => 90,
     Options::INTERLACE->value => true,
 ]);
+
+$resizer->resize('image.jpg', 'output.jpg');
 ```
 
-### Auto-generated Output Path
+### Method Chaining
 
-If you don't specify an output path, the library automatically generates one with a `resized-` prefix:
+All setter methods return `$this` for fluent interface:
 
 ```php
-$resizer->resize('photo.jpg'); // Creates: resized-photo.jpg
+ImageResizer::create()
+    ->setTransformation(Transformations::SET_WIDTH, 1920)
+    ->setTransformation(Transformations::SET_HEIGHT, 1080)
+    ->setOption(Options::QUALITY, 85)
+    ->setOption(Options::INTERLACE, true)
+    ->resize('input.jpg', 'output.jpg');
 ```
 
-## 🎨 Advanced Examples
+## Configuration Profiles
 
-### Thumbnail Generator
+ImageResizer comes with pre-configured validation profiles for different use cases.
+
+### Available Profiles
 
 ```php
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::PROPORTIONAL)
-    ->setTransformation(Transformations::SET_RATIO, 0.2)
-    ->setOption(Options::QUALITY, 75);
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
-$resizer->resize('large-photo.jpg', 'thumbnail.jpg');
+// Default configuration
+$resizer = ImageResizer::create(ImageResizerConfig::default());
+
+// Safe configuration - for public websites with user uploads
+$resizer = ImageResizer::create(ImageResizerConfig::safe());
+
+// Strict configuration - for high-security environments
+$resizer = ImageResizer::create(ImageResizerConfig::strict());
+
+// Thumbnail configuration - optimized for small images
+$resizer = ImageResizer::create(ImageResizerConfig::thumbnail());
+
+// Web configuration - optimized for web display
+$resizer = ImageResizer::create(ImageResizerConfig::web());
+
+// Print configuration - optimized for print quality
+$resizer = ImageResizer::create(ImageResizerConfig::print());
 ```
 
-### Batch Processing
+### Profile Specifications
+
+| Profile | Max Width | Max Height | Quality Range | Ratio Range | Use Case |
+|---------|-----------|------------|---------------|-------------|----------|
+| `default()` | 2000px | 2000px | 0-100 | 0.01-10.0 | Standard usage |
+| `safe()` | 8000px | 8000px | 50-95 | 0.1-2.0 | Public websites |
+| `strict()` | 4000px | 4000px | 60-90 | 0.5-1.0 | Secure environments |
+| `thumbnail()` | 500px | 500px | 70-85 | - | Thumbnails |
+| `web()` | 2000px | 2000px | 70-90 | - | Web images |
+| `print()` | 10000px | 10000px | 85-100 | - | Print quality |
+
+### Custom Configuration
+
+Create your own configuration with specific constraints:
 
 ```php
-$images = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'];
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::FIXED_WIDTH)
-    ->setTransformation(Transformations::SET_WIDTH, 1200)
-    ->setOption(Options::QUALITY, 85);
+$config = new ImageResizerConfig([
+    'minWidth' => 100,              // Minimum width in pixels
+    'maxWidth' => 3000,             // Maximum width in pixels
+    'minHeight' => 100,             // Minimum height in pixels
+    'maxHeight' => 3000,            // Maximum height in pixels
+    'minRatio' => 0.5,              // Minimum aspect ratio (width/height)
+    'maxRatio' => 2.0,              // Maximum aspect ratio
+    'minQuality' => 60,             // Minimum JPEG quality (0-100)
+    'maxQuality' => 95,             // Maximum quality
+    'defaultQuality' => 85,         // Default quality if not specified
+    'defaultInterlace' => true,     // Enable progressive JPEG by default
+]);
 
-foreach ($images as $image) {
-    $resizer->resize($image, 'resized/' . basename($image));
+$resizer = ImageResizer::create($config);
+```
+
+## Validation
+
+ImageResizer validates all inputs to ensure safe and consistent image processing.
+
+### Automatic Validation
+
+All transformations and options are automatically validated:
+
+```php
+try {
+    $resizer = ImageResizer::create(ImageResizerConfig::safe());
+    
+    // This will throw InvalidRangeException if width > 8000
+    $resizer->setTransformation(Transformations::SET_WIDTH, 10000);
+    
+} catch (\Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException $e) {
+    echo "Validation error: " . $e->getMessage();
 }
 ```
 
-### Responsive Image Set
+### Common Exceptions
+
+- `InvalidRangeException` - Value is out of allowed range
+- `InvalidTypeException` - Value has wrong type
+- `InvalidPathException` - File path is invalid or file doesn't exist
+
+### Validation Examples
 
 ```php
-$sizes = [
-    'thumbnail' => 150,
-    'small' => 480,
-    'medium' => 768,
-    'large' => 1200,
-];
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
-$resizer = ImageResizer::create()
-    ->setResizeType(ResizeType::FIXED_WIDTH)
-    ->setOption(Options::QUALITY, 80);
+$config = ImageResizerConfig::strict();  // Max width: 4000px
+$resizer = ImageResizer::create($config);
 
-foreach ($sizes as $name => $width) {
-    $resizer->setTransformation(Transformations::SET_WIDTH, $width);
-    $resizer->resize('original.jpg', "output-{$name}.jpg");
-}
-```
+// ✅ Valid - within limits
+$resizer->setTransformation(Transformations::SET_WIDTH, 2000);
 
-## ✅ Validation
-
-The library validates all parameters before processing, providing clear error messages:
-
-### Dimension Validation
-
-```php
-// ✓ Valid: 10-2000 pixels
-$resizer->setTransformation(Transformations::SET_WIDTH, 800);
-
-// ✗ Throws InvalidRangeException: Dimension out of range
+// ❌ Invalid - exceeds max width
 $resizer->setTransformation(Transformations::SET_WIDTH, 5000);
+// Throws: InvalidRangeException
 
-// ✗ Throws InvalidTypeException: Must be integer
-$resizer->setTransformation(Transformations::SET_WIDTH, "800");
+// ❌ Invalid - wrong type
+$resizer->setTransformation(Transformations::SET_WIDTH, "2000");
+// Throws: InvalidTypeException
+
+// ❌ Invalid - file doesn't exist
+$resizer->resize('nonexistent.jpg', 'output.jpg');
+// Throws: InvalidPathException
 ```
 
-### Quality Validation
+## Examples
+
+### Example 1: User Avatar Processing
 
 ```php
-// ✓ Valid: 0-100
-$resizer->setOption(Options::QUALITY, 85);
+use Guillaumetissier\ImageResizer\ImageResizer;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
+use Guillaumetissier\ImageResizer\Constants\Transformations;
+use Guillaumetissier\ImageResizer\Constants\Options;
 
-// ✗ Throws InvalidRangeException: Quality out of range
-$resizer->setOption(Options::QUALITY, 150);
-
-// ✗ Throws InvalidTypeException: Must be integer
-$resizer->setOption(Options::QUALITY, 85.5);
-```
-
-### Ratio Validation
-
-```php
-// ✓ Valid: 0.01-2.0
-$resizer->setTransformation(Transformations::SET_RATIO, 0.5);
-
-// ✗ Throws InvalidRangeException: Ratio out of range
-$resizer->setTransformation(Transformations::SET_RATIO, 5.0);
-
-// ✗ Throws InvalidTypeException: Must be numeric
-$resizer->setTransformation(Transformations::SET_RATIO, "0.5");
-```
-
-### File Validation
-
-```php
-// ✗ Throws InvalidPathException: File not found
-$resizer->resize('missing.jpg', 'output.jpg');
-
-// ✗ Throws InvalidPathException: Unsupported format
-$resizer->resize('document.pdf', 'output.jpg');
-
-// ✗ Throws InvalidPathException: Directory not writable
-$resizer->resize('input.jpg', '/root/output.jpg');
-```
-
-## 🔧 Supported Formats
-
-| Format | Extensions | Notes |
-|--------|-----------|-------|
-| **JPEG** | `.jpg`, `.jpeg` | Supports quality setting |
-| **PNG** | `.png` | Lossless, ignores quality setting |
-| **GIF** | `.gif` | Supports transparency |
-
-## ⚙️ Configuration Limits
-
-| Parameter | Minimum | Maximum | Default |
-|-----------|---------|---------|---------|
-| **Width** | 10px | 2000px | - |
-| **Height** | 10px | 2000px | - |
-| **Quality** | 0 | 100 | 80 |
-| **Ratio** | 0.01 (1%) | 2.0 (200%) | - |
-
-These limits are designed to prevent:
-- 🚫 Memory exhaustion from extremely large images
-- 🚫 Unusably small output images
-- 🚫 File system issues
-
-## 🛡️ Error Handling
-
-```php
-use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
-use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
-use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
+// Strict validation for user uploads
+$resizer = ImageResizer::create(ImageResizerConfig::strict());
 
 try {
-    $resizer = ImageResizer::create()
-        ->setTransformation(Transformations::SET_WIDTH, 800)
-        ->setOption(Options::QUALITY, 85);
-    
-    $resizer->resize('input.jpg', 'output.jpg');
-    
-    echo "✓ Image resized successfully\n";
-    
-} catch (InvalidTypeException $e) {
-    // Wrong parameter type (e.g., string instead of int)
-    echo "Type error: {$e->getMessage()}\n";
-    
-} catch (InvalidRangeException $e) {
-    // Parameter outside acceptable range
-    echo "Range error: {$e->getMessage()}\n";
-    
-} catch (InvalidPathException $e) {
-    // File/directory issues (not found, not readable, etc.)
-    echo "Path error: {$e->getMessage()}\n";
+    $resizer
+        ->setTransformations([
+            Transformations::SET_WIDTH => 200,
+            Transformations::SET_HEIGHT => 200,
+        ])
+        ->setOptions([
+            Options::QUALITY => 85,
+            Options::INTERLACE => true,
+        ])
+        ->resize($_FILES['avatar']['tmp_name'], 'uploads/avatars/user-123.jpg');
+        
+    echo "Avatar uploaded successfully!";
     
 } catch (\Exception $e) {
-    // Other errors
-    echo "Error: {$e->getMessage()}\n";
+    echo "Error: " . $e->getMessage();
 }
 ```
 
-## 📚 API Reference
+### Example 2: Batch Processing
+
+```php
+$resizer = ImageResizer::create(ImageResizerConfig::web())
+    ->setTransformation(Transformations::SET_WIDTH, 1920)
+    ->setOption(Options::QUALITY, 85);
+
+$images = glob('originals/*.jpg');
+
+foreach ($images as $image) {
+    $filename = basename($image);
+    try {
+        $resizer->resize($image, "processed/{$filename}");
+        echo "Processed: {$filename}\n";
+    } catch (\Exception $e) {
+        echo "Error processing {$filename}: {$e->getMessage()}\n";
+    }
+}
+```
+
+### Example 3: Creating Thumbnails
+
+```php
+$resizer = ImageResizer::create(ImageResizerConfig::thumbnail())
+    ->setOptions([
+        Options::QUALITY => 75,
+        Options::INTERLACE => false,
+    ]);
+
+// Create multiple thumbnail sizes
+$sizes = [
+    'small' => 150,
+    'medium' => 300,
+    'large' => 500,
+];
+
+foreach ($sizes as $name => $width) {
+    $resizer->setTransformation(Transformations::SET_WIDTH, $width)
+        ->resize('original.jpg', "thumbnails/{$name}.jpg");
+}
+```
+
+## Architecture
+
+ImageResizer follows SOLID principles and uses dependency injection for flexibility:
+
+```
+ImageResizer (main class)
+├── ValidatorFactory (creates validators with config)
+│   ├── WidthValidator
+│   ├── HeightValidator
+│   ├── RatioValidator
+│   ├── QualityValidator
+│   └── ...
+├── DimensionsReader (reads image dimensions)
+├── DimensionCalculatorFactory (calculates new dimensions)
+└── ImageResizerFactory (creates format-specific resizers)
+    ├── JpegImageResizer
+    ├── PngImageResizer
+    └── GifImageResizer
+```
+
+## API Reference
 
 ### ImageResizer
 
 #### Factory Method
 
 ```php
-public static function create(): self
+public static function create(?ImageResizerConfig $config = null): self
 ```
 
-Creates a new ImageResizer instance with default dependencies.
+Creates a new ImageResizer instance with optional configuration.
 
-#### Configuration Methods
+#### Methods
 
 ```php
-public function setResizeType(ResizeType $type): self
-public function setTransformation(Transformations $transformation, int|float $value): self
+// Set a single transformation
+public function setTransformation(Transformations $transformation, mixed $value): self
+
+// Set multiple transformations at once
 public function setTransformations(array $transformations): self
+
+// Set a single option
 public function setOption(Options $option, int|bool|string $value): self
+
+// Set multiple options at once
 public function setOptions(array $options): self
-```
 
-#### Processing Method
-
-```php
+// Resize the image
 public function resize(string $source, ?string $target = null): void
 ```
 
-Resizes the image from `$source` to `$target`. If `$target` is null, generates filename with `resized-` prefix.
+### ImageResizerConfig
 
-**Throws:**
-- `InvalidTypeException` - Wrong parameter type
-- `InvalidRangeException` - Parameter out of range
-- `InvalidPathException` - File/directory issues
+#### Factory Methods
 
-## 🤝 Contributing
+```php
+public static function default(): self
+public static function safe(): self
+public static function strict(): self
+public static function thumbnail(): self
+public static function web(): self
+public static function print(): self
+```
+
+#### Constructor
+
+```php
+public function __construct(array $config = [])
+```
+
+**Available parameters:**
+- `minWidth` (int|null) - Minimum width in pixels
+- `maxWidth` (int|null) - Maximum width in pixels
+- `minHeight` (int|null) - Minimum height in pixels
+- `maxHeight` (int|null) - Maximum height in pixels
+- `minRatio` (float|null) - Minimum aspect ratio
+- `maxRatio` (float|null) - Maximum aspect ratio
+- `minQuality` (int|null) - Minimum quality (0-100)
+- `maxQuality` (int|null) - Maximum quality (0-100)
+- `defaultQuality` (int) - Default quality value
+- `defaultInterlace` (bool) - Default interlace setting
+
+### Constants
+
+#### Transformations
+
+```php
+Transformations::SET_WIDTH   // Resize by width
+Transformations::SET_HEIGHT  // Resize by height
+Transformations::SET_RATIO   // Resize by aspect ratio
+```
+
+#### Options
+
+```php
+Options::QUALITY      // Image quality (0-100)
+Options::INTERLACE    // Progressive/interlaced (bool)
+Options::SCALE_MODE   // Scaling mode (integer)
+```
+
+## Migration from v1.x
+
+### Breaking Changes
+
+The constructor is now private. Use the factory method instead:
+
+```php
+// ❌ v1.x - No longer works
+$resizer = new ImageResizer(...);
+
+// ✅ v2.0 - Use factory method
+$resizer = ImageResizer::create();
+$resizer = ImageResizer::create(ImageResizerConfig::safe());
+```
+
+### No Changes Needed
+
+If you were already using `ImageResizer::create()`, no changes are required:
+
+```php
+// This works in both v1.x and v2.0
+$resizer = ImageResizer::create();
+$resizer->setTransformation(Transformations::SET_WIDTH, 800);
+$resizer->resize('input.jpg', 'output.jpg');
+```
+
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Coding Standards
-
-- Follow PSR-12 coding standard
-- Add tests for new features
-- Update documentation as needed
-
-```bash
-# Run code style fixer
-./vendor/bin/php-cs-fixer fix
-
-# Run static analysis
-./vendor/bin/phpstan analyze
-```
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## Support
 
-- [Repository](https://github.com/guillaumetissier/image-resizer)
-- [Issue Tracker](https://github.com/guillaumetissier/image-resizer/issues)
-- [Changelog](CHANGELOG.md)
+- 📧 Email: [guillaume.tissier@yahoo.com]
+- 🐛 Issues: [GitHub Issues](https://github.com/guillaumetissier/image-resizer/issues)
+- 📖 Documentation: [Full Documentation](https://github.com/guillaumetissier/image-resizer/wiki)
 
-## 💡 Tips
+## Changelog
 
-### Memory Management
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes.
 
-For very large images, consider adjusting PHP's memory limit:
+## Credits
 
-```php
-ini_set('memory_limit', '256M');
-```
-
-### Performance
-
-- Use lower quality settings (60-80) for web images
-- Enable progressive JPEG for faster perceived loading
-
-
-## 🙏 Acknowledgments
-
-- Built with [path-utilities](https://github.com/guillaumetissier/path-utilities)
-- Inspired by best practices in modern PHP development
-
----
-
-Made with ❤️ by [Guillaume Tissier](https://github.com/guillaumetissier)
+Created and maintained by [Guillaume Tissier](https://github.com/guillaumetissier)

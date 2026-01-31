@@ -7,6 +7,7 @@ namespace Guillaumetissier\ImageResizer\Validators;
 use Guillaumetissier\ImageResizer\Constants\Quality;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
 /**
  * Validates image quality values.
@@ -21,6 +22,16 @@ use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
  */
 final class QualityValidator implements ValidatorInterface
 {
+    private readonly int $minQuality;
+
+    private readonly int $maxQuality;
+
+    public function __construct(ImageResizerConfig $config)
+    {
+        $this->minQuality = $config->minQuality;
+        $this->maxQuality = $config->maxQuality;
+    }
+
     /**
      * Validate that quality is an integer and within acceptable range.
      *
@@ -29,14 +40,14 @@ final class QualityValidator implements ValidatorInterface
      * @throws InvalidTypeException  If quality not int
      * @throws InvalidRangeException If quality is outside acceptable range
      */
-    public static function validate(mixed $value): void
+    public function validate(mixed $value): void
     {
         if (!is_int($value)) {
             throw InvalidTypeException::notInt('quality', $value);
         }
 
-        if ($value < Quality::MIN->value || $value > Quality::MAX->value) {
-            throw InvalidRangeException::outOfRange('quality', $value, Quality::MIN->value, Quality::MAX->value);
+        if ($value < $this->minQuality || $value > $this->maxQuality) {
+            throw InvalidRangeException::outOfRange('quality', $value, $this->minQuality, $this->maxQuality);
         }
     }
 }

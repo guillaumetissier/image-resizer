@@ -9,14 +9,22 @@ use Guillaumetissier\ImageResizer\Exceptions\CannotCreateImageException;
 use Guillaumetissier\ImageResizer\Exceptions\CannotSaveImageException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\ImageResizer\ImageResizer\PngImageResizer;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\PathUtilities\Path;
 use PHPUnit\Framework\TestCase;
 
 final class PngImageResizerTest extends TestCase
 {
+    private static ImageResizerConfig $config;
+
     private string $sourceFile;
 
     private string $targetFile;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$config = new ImageResizerConfig();
+    }
 
     protected function setUp(): void
     {
@@ -45,7 +53,7 @@ final class PngImageResizerTest extends TestCase
 
     public function testResizePngImage(): void
     {
-        $resizer = new PngImageResizer([]);
+        $resizer = new PngImageResizer(self::$config, []);
         $newDimensions = new ImageDimensions(40, 60); // height, width
         $resizer->resize(new Path($this->sourceFile), new Path($this->targetFile), $newDimensions);
 
@@ -57,7 +65,7 @@ final class PngImageResizerTest extends TestCase
 
     public function testResizePngWithCustomQuality(): void
     {
-        $resizer = new PngImageResizer([Options::QUALITY->value => 80]);
+        $resizer = new PngImageResizer(self::$config, [Options::QUALITY->value => 80]);
         $resizer->resize(new Path($this->sourceFile), new Path($this->targetFile), new ImageDimensions(40, 60));
 
         $this->assertFileExists($this->targetFile);
@@ -67,7 +75,7 @@ final class PngImageResizerTest extends TestCase
     {
         $this->expectException(CannotCreateImageException::class);
 
-        $resizer = new PngImageResizer([]);
+        $resizer = new PngImageResizer(self::$config, []);
         $resizer->resize(
             new Path('/path/to/nonexistent.png'),
             new Path($this->targetFile),
@@ -79,7 +87,7 @@ final class PngImageResizerTest extends TestCase
     {
         $this->expectException(CannotSaveImageException::class);
 
-        $resizer = new PngImageResizer([]);
+        $resizer = new PngImageResizer(self::$config, []);
         $resizer->resize(
             new Path($this->sourceFile),
             new Path('/invalid/path/target.png'),

@@ -27,7 +27,7 @@ final class JpegImageResizer extends AbstractImageResizer
      */
     protected function save(string $target): void
     {
-        $quality = $this->getOption(Options::QUALITY, 75);
+        $quality = $this->getOption(Options::QUALITY, $this->config->defaultQuality);
 
         if (false === @imagejpeg($this->target, $target, $quality)) {
             throw new CannotSaveImageException($target);

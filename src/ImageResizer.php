@@ -16,34 +16,47 @@ use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactory;
 use Guillaumetissier\ImageResizer\ImageResizer\ImageResizerFactoryInterface;
-use Guillaumetissier\ImageResizer\Validators\DimensionValidator;
+use Guillaumetissier\ImageResizer\Validators\HeightValidator;
+use Guillaumetissier\ImageResizer\Validators\InterlaceValidator;
 use Guillaumetissier\ImageResizer\Validators\QualityValidator;
 use Guillaumetissier\ImageResizer\Validators\RatioValidator;
+use Guillaumetissier\ImageResizer\Validators\ScaleModeValidator;
 use Guillaumetissier\ImageResizer\Validators\SourceFileValidator;
+use Guillaumetissier\ImageResizer\Validators\TargetDirValidator;
+use Guillaumetissier\ImageResizer\Validators\ValidatorFactory;
+use Guillaumetissier\ImageResizer\Validators\ValidatorFactoryInterface;
+use Guillaumetissier\ImageResizer\Validators\WidthValidator;
 use Guillaumetissier\PathUtilities\Path;
 
 final class ImageResizer
 {
     private ResizeType $type = ResizeType::PROPORTIONAL;
 
-    protected array $transformations = [];
+    private ImageResizerConfig $config;
 
-    protected array $options = [];
+    private array $transformations = [];
 
-    public static function create(): self
+    private array $options = [];
+
+    public static function create(?ImageResizerConfig $config = null): self
     {
         return new self(
+            new ValidatorFactory(),
             new DimensionsReader(),
             new DimensionCalculatorFactory(),
-            new ImageResizerFactory()
+            new ImageResizerFactory(),
+            $config ?? ImageResizerConfig::safe()
         );
     }
 
-    public function __construct(
+    private function __construct(
+        private readonly ValidatorFactoryInterface $validatorFactory,
         private readonly DimensionsReaderInterface $imageDimensionsReader,
         private readonly DimensionCalculatorFactoryInterface $dimensionCalculatorFactory,
         private readonly ImageResizerFactoryInterface $imageResizerFactory,
+        ?ImageResizerConfig $config = null,
     ) {
+        $this->config = $config ?? ImageResizerConfig::safe();
     }
 
     /**
@@ -77,7 +90,6 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidTypeException  If value has wrong type
      * @throws InvalidRangeException If value is out of range
      */
     public function setTransformations(array $transformations): self
@@ -98,17 +110,17 @@ final class ImageResizer
      *
      * @return self For method chaining
      *
-     * @throws InvalidTypeException  If value has wrong type
      * @throws InvalidRangeException If value is out of range
      */
     public function setTransformation(Transformations $transformation, mixed $value): self
     {
-        match ($transformation) {
-            Transformations::SET_WIDTH,
-            Transformations::SET_HEIGHT => DimensionValidator::validate($value),
-            Transformations::SET_RATIO => RatioValidator::validate($value),
+        $validator = match ($transformation) {
+            Transformations::SET_WIDTH => $this->validatorFactory->create(WidthValidator::class, $this->config),
+            Transformations::SET_HEIGHT => $this->validatorFactory->create(HeightValidator::class, $this->config),
+            Transformations::SET_RATIO => $this->validatorFactory->create(RatioValidator::class, $this->config),
         };
 
+        $validator->validate($value);
         $this->transformations[$transformation->value] = $value;
 
         return $this;
@@ -124,8 +136,6 @@ final class ImageResizer
      * } $options
      *
      * @return self For method chaining
-     *
-     * @throws \InvalidArgumentException|InvalidTypeException If option values are invalid
      */
     public function setOptions(array $options): self
     {
@@ -138,23 +148,25 @@ final class ImageResizer
     }
 
     /**
-     * Set a single option.
+     * Set a single resize option.
      *
-     * @param Options         $option The option type
+     * @param Options         $option The option to set
      * @param int|bool|string $value  The option value
      *
      * @return self For method chaining
      *
-     * @throws InvalidTypeException If value is invalid for a quality option
+     * @throws InvalidTypeException  If value type is invalid
+     * @throws InvalidRangeException If value is out of range
      */
     public function setOption(Options $option, int|bool|string $value): self
     {
-        match ($option) {
-            Options::QUALITY => QualityValidator::validate($value),
-            Options::INTERLACE => $this->validateBoolean($value),
-            default => null, // No validation for other options
+        $validator = match ($option) {
+            Options::QUALITY => $this->validatorFactory->create(QualityValidator::class, $this->config),
+            Options::INTERLACE => $this->validatorFactory->create(InterlaceValidator::class, $this->config),
+            Options::SCALE_MODE => $this->validatorFactory->create(ScaleModeValidator::class, $this->config),
         };
 
+        $validator->validate($value);
         $this->options[$option->value] = $value;
 
         return $this;
@@ -166,19 +178,22 @@ final class ImageResizer
      * @param string      $source Path to the source image
      * @param string|null $target Path to the target image (auto-generated if null)
      *
-     * @throws InvalidTypeException
      * @throws InvalidPathException If source file doesn't exist
      */
     public function resize(string $source, ?string $target = null): void
     {
         $sourcePath = new Path($source);
 
-        SourceFileValidator::validate($sourcePath);
+        $this->validatorFactory
+            ->create(SourceFileValidator::class, $this->config)
+            ->validate($sourcePath);
 
         if (null !== $target) {
             $targetPath = new Path($target);
             if (!$targetPath->exists()) {
-                $this->validateDirectory($targetPath->parent());
+                $this->validatorFactory
+                    ->create(TargetDirValidator::class, $this->config)
+                    ->validate($targetPath->parent());
             }
         } else {
             $targetPath = $this->addResizedPrefix($sourcePath);
@@ -192,15 +207,8 @@ final class ImageResizer
             ->calculateDimensions($oldDimensions);
 
         $this->imageResizerFactory
-            ->create($sourcePath, $this->options)
+            ->create($sourcePath, $this->config, $this->options)
             ->resize($sourcePath, $targetPath, $newDimensions);
-    }
-
-    private function validateBoolean(mixed $value): void
-    {
-        if (!is_bool($value)) {
-            throw new \InvalidArgumentException('Option value must be a boolean, got: '.gettype($value));
-        }
     }
 
     private function validateDirectory(Path $target): void

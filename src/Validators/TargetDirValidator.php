@@ -6,12 +6,12 @@ use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
 use Guillaumetissier\PathUtilities\Path;
 
-class TargetDirValidator implements ValidatorInterface
+final class TargetDirValidator implements ValidatorInterface
 {
     /**
      * @throws InvalidTypeException
      */
-    public static function validate(mixed $value): void
+    public function validate(mixed $value): void
     {
         if (!$value instanceof Path) {
             throw InvalidTypeException::notPath('Target dir', $value);

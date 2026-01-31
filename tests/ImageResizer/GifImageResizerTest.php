@@ -8,14 +8,22 @@ use Guillaumetissier\ImageResizer\Exceptions\CannotCreateImageException;
 use Guillaumetissier\ImageResizer\Exceptions\CannotSaveImageException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
 use Guillaumetissier\ImageResizer\ImageResizer\GifImageResizer;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\PathUtilities\Path;
 use PHPUnit\Framework\TestCase;
 
 final class GifImageResizerTest extends TestCase
 {
+    private static ImageResizerConfig $config;
+
     private string $sourceFile;
 
     private string $targetFile;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$config = new ImageResizerConfig();
+    }
 
     protected function setUp(): void
     {
@@ -40,7 +48,7 @@ final class GifImageResizerTest extends TestCase
 
     public function testResizeGifImage(): void
     {
-        $resizer = new GifImageResizer([]);
+        $resizer = new GifImageResizer(self::$config, []);
         $newDimensions = new ImageDimensions(25, 50); // height, width
         $resizer->resize(new Path($this->sourceFile), new Path($this->targetFile), $newDimensions);
 
@@ -56,7 +64,7 @@ final class GifImageResizerTest extends TestCase
     {
         $this->expectException(CannotCreateImageException::class);
 
-        $resizer = new GifImageResizer([]);
+        $resizer = new GifImageResizer(self::$config, []);
         $resizer->resize(new Path('/path/to/nonexistent.gif'), new Path($this->targetFile), new ImageDimensions(10, 10));
     }
 
@@ -64,7 +72,7 @@ final class GifImageResizerTest extends TestCase
     {
         $this->expectException(CannotSaveImageException::class);
 
-        $resizer = new GifImageResizer([]);
+        $resizer = new GifImageResizer(self::$config, []);
         $invalidTarget = '/invalid/path/target.gif';
         $resizer->resize(new Path($this->sourceFile), new Path($invalidTarget), new ImageDimensions(10, 10));
     }

@@ -6,17 +6,25 @@ namespace Guillaumetissier\ImageResizer\Tests\Validators;
 
 use Guillaumetissier\ImageResizer\Exceptions\InvalidRangeException;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidTypeException;
-use Guillaumetissier\ImageResizer\Validators\DimensionValidator;
+use Guillaumetissier\ImageResizer\ImageResizerConfig as Config;
+use Guillaumetissier\ImageResizer\Validators\HeightValidator;
 use PHPUnit\Framework\TestCase;
 
-final class DimensionValidatorTest extends TestCase
+final class HeightValidatorTest extends TestCase
 {
+    private HeightValidator $validator;
+
+    public function setUp(): void
+    {
+        $this->validator = new HeightValidator(new Config(['minHeight' => 10, 'maxHeight' => 2000]));
+    }
+
     /**
      * @dataProvider validDimensionProvider
      */
     public function testValidateAcceptsValidDimensions(int $dimension): void
     {
-        DimensionValidator::validate($dimension);
+        $this->validator->validate($dimension);
 
         $this->assertTrue(true);
     }
@@ -41,7 +49,7 @@ final class DimensionValidatorTest extends TestCase
     {
         $this->expectException(InvalidTypeException::class);
 
-        DimensionValidator::validate($value);
+        $this->validator->validate($value);
     }
 
     public static function invalidTypeProvider(): array
@@ -65,11 +73,12 @@ final class DimensionValidatorTest extends TestCase
     public function testValidateThrowsForOutOfRangeValues(int $dimension): void
     {
         $this->expectException(InvalidRangeException::class);
+        $this->expectExceptionMessage('height');
         $this->expectExceptionMessage('out of range');
         $this->expectExceptionMessage('10');
         $this->expectExceptionMessage('2000');
 
-        DimensionValidator::validate($dimension);
+        $this->validator->validate($dimension);
     }
 
     public static function aboveMaximumProvider(): array

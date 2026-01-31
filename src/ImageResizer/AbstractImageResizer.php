@@ -7,6 +7,7 @@ namespace Guillaumetissier\ImageResizer\ImageResizer;
 use Guillaumetissier\ImageResizer\Constants\Options;
 use Guillaumetissier\ImageResizer\Exceptions\InvalidPathException;
 use Guillaumetissier\ImageResizer\ImageDimensions;
+use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\PathUtilities\Path;
 
 abstract class AbstractImageResizer implements ImageResizerInterface
@@ -22,7 +23,7 @@ abstract class AbstractImageResizer implements ImageResizerInterface
      *     quality?: int,
      * } $options
      */
-    public function __construct(private readonly array $options)
+    public function __construct(protected readonly ImageResizerConfig $config, private readonly array $options)
     {
     }
 
@@ -66,7 +67,7 @@ abstract class AbstractImageResizer implements ImageResizerInterface
     {
         @imageinterlace(
             $this->target,
-            $this->getOption(Options::INTERLACE, false)
+            $this->getOption(Options::INTERLACE, $this->config->defaultInterlace)
         );
     }
 
@@ -82,9 +83,6 @@ abstract class AbstractImageResizer implements ImageResizerInterface
         }
     }
 
-    /**
-     * @template
-     */
     protected function getOption(Options $optionKey, mixed $default): mixed
     {
         return $this->options[$optionKey->value] ?? $default;
