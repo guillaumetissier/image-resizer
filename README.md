@@ -326,7 +326,11 @@ ImageResizer (main class)
 │   ├── QualityValidator
 │   └── ...
 ├── DimensionsReader (reads image dimensions)
-├── DimensionCalculatorFactory (calculates new dimensions)
+├── DimensionCalculatorFactory (create resize-specific calculators)
+│   ├── FixedDimensionsCalculator
+│   ├── FixedHeightCalculator
+│   ├── FixedWidthCalculator
+│   └── ProportionalDimensionsCalculator
 └── ImageResizerFactory (creates format-specific resizers)
     ├── JpegImageResizer
     ├── PngImageResizer
