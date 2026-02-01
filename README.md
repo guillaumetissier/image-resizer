@@ -39,7 +39,7 @@ $resizer = ImageResizer::create();
 
 // Resize image
 $resizer
-    ->setTransformation(Transformations::SET_WIDTH, 1920)
+    ->setTransformation(Transformations::SET_RATIO, 0.8)
     ->setOption(Options::QUALITY, 85)
     ->resize('source.jpg', 'output.jpg');
 ```
@@ -49,21 +49,33 @@ $resizer
 ### Basic Resizing
 
 ```php
+use Guillaumetissier\ImageResizer\Constants\ResizeType;
 use Guillaumetissier\ImageResizer\ImageResizer;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
 
 $resizer = ImageResizer::create();
-
+// Resize by aspect ratio (default)
+$resizer
+    ->setTransformation(Transformations::SET_RATIO, 2)
+    ->resize('image.jpg', 'resized.jpg');
+    
 // Resize by width (maintains aspect ratio)
-$resizer->setTransformation(Transformations::SET_WIDTH, 800)
+$resizer
+    ->setResizeType(ResizeType::FIXED_WIDTH)
+    ->setTransformation(Transformations::SET_WIDTH, 800)
     ->resize('image.jpg', 'resized.jpg');
 
 // Resize by height (maintains aspect ratio)
-$resizer->setTransformation(Transformations::SET_HEIGHT, 600)
+$resizer
+    ->setResizeType(ResizeType::FIXED_HEIGHT)
+    ->setTransformation(Transformations::SET_HEIGHT, 600)
     ->resize('image.jpg', 'resized.jpg');
 
-// Resize by aspect ratio
-$resizer->setTransformation(Transformations::SET_RATIO, 16/9)
+// Resize with fixed height and width
+$resizer
+    ->setResizeType(ResizeType::FIXED)
+    ->setTransformation(Transformations::SET_HEIGHT, 600)
+    ->setTransformation(Transformations::SET_WIDTH, 300)
     ->resize('image.jpg', 'resized.jpg');
 ```
 
@@ -84,6 +96,7 @@ $resizer->resize('source.jpg', 'output.jpg');
 use Guillaumetissier\ImageResizer\Constants\Options;
 
 $resizer = ImageResizer::create()
+    ->setTransformation(Transformations::SET_RATIO, 0.5)
     ->setOption(Options::QUALITY, 85)           // JPEG quality (0-100)
     ->setOption(Options::INTERLACE, true);      // Progressive JPEG
 
@@ -102,6 +115,7 @@ All setter methods return `$this` for fluent interface:
 
 ```php
 ImageResizer::create()
+    ->setType(ResizeType::FIXED)
     ->setTransformation(Transformations::SET_WIDTH, 1920)
     ->setTransformation(Transformations::SET_HEIGHT, 1080)
     ->setOption(Options::QUALITY, 85)
@@ -203,7 +217,7 @@ try {
 use Guillaumetissier\ImageResizer\ImageResizerConfig;
 
 $config = ImageResizerConfig::strict();  // Max width: 4000px
-$resizer = ImageResizer::create($config);
+$resizer = ImageResizer::create($config)->setType(ResizeType::FIXED_WIDTH);
 
 // ✅ Valid - within limits
 $resizer->setTransformation(Transformations::SET_WIDTH, 2000);
@@ -226,6 +240,7 @@ $resizer->resize('nonexistent.jpg', 'output.jpg');
 ### Example 1: User Avatar Processing
 
 ```php
+use Guillaumetissier\ImageResizer\Constants\ResizeType;
 use Guillaumetissier\ImageResizer\ImageResizer;
 use Guillaumetissier\ImageResizer\ImageResizerConfig;
 use Guillaumetissier\ImageResizer\Constants\Transformations;
@@ -236,6 +251,7 @@ $resizer = ImageResizer::create(ImageResizerConfig::strict());
 
 try {
     $resizer
+        ->setResizeType(ResizeType::FIXED)
         ->setTransformations([
             Transformations::SET_WIDTH => 200,
             Transformations::SET_HEIGHT => 200,
@@ -257,6 +273,7 @@ try {
 
 ```php
 $resizer = ImageResizer::create(ImageResizerConfig::web())
+    ->setType(ResizeType::FIXED_WIDTH)
     ->setTransformation(Transformations::SET_WIDTH, 1920)
     ->setOption(Options::QUALITY, 85);
 
@@ -277,6 +294,7 @@ foreach ($images as $image) {
 
 ```php
 $resizer = ImageResizer::create(ImageResizerConfig::thumbnail())
+    ->setType(ResizeType::FIXED_HEIGHT)
     ->setOptions([
         Options::QUALITY => 75,
         Options::INTERLACE => false,
@@ -289,8 +307,8 @@ $sizes = [
     'large' => 500,
 ];
 
-foreach ($sizes as $name => $width) {
-    $resizer->setTransformation(Transformations::SET_WIDTH, $width)
+foreach ($sizes as $name => $height) {
+    $resizer->setTransformation(Transformations::SET_HEIGHT, $height)
         ->resize('original.jpg', "thumbnails/{$name}.jpg");
 }
 ```
